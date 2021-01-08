@@ -8,6 +8,7 @@ uniform uvec2 res;
 uniform float ratio;
 //uniform vec4 spheres[32];
 uniform mat4 cam;
+uniform mat4 proj;
 uniform float time;
 
 float spacing = 8.0;
@@ -41,7 +42,7 @@ vec2 mandelBulb(vec3 pos) {
 	float r = 0.0;
 	float Power = 8.0;
 	int steps = 0;
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 50; i++) {
 		r = length(z);
 		if (r > 4.0) break;
 
@@ -73,27 +74,31 @@ void main() {
 	vec3 cPos = cam[3].xyz;
 
 	//this does the projection outwards. +z is forward
-	vec3 dir = (cam * vec4(normalize(vec3(0.9 * c, 1.0)), 0.0)).xyz;
+	//vec3 dir = (cam * vec4(normalize(vec3(0.9 * c, 1.0)), 0.0)).xyz;
+	vec3 projDir = (proj * vec4(screenPos, -1.0, 1.0)).xyz;
+	vec3 dir = normalize(cam * vec4(projDir, 0.0)).xyz;
 
 	int raysteps = 0;
 	vec3 raypos = cPos;
 	float dist = 1.0;
 	vec2 mandelinfo;
-	float gravConstant = -0.1;
+	float gravConstant = 0.01;
 	while (dist > 0.0001 && raysteps < 50) {
-		dist = distToCube(raypos);
+		dist = distSphere(raypos);
 		dir += gravConstant * vecToSphere(raypos) / (dist*dist);
-		raypos += 0.8 * dist * dir;
+		raypos += dist * dir;
 		raysteps += 1;
 	}
 	vec3 normal = vecToSphere(raypos);
 	vec3 lightdir = normalize(vec3(1.0, 1.0, 1.0));
 	float reflection = dot(normal, lightdir);
-	float shade = exp(-0.01 * distance(raypos, cPos));
-	FragColor = shade * vec4(
+	float depth = distance(raypos, cPos);
+	float shade = exp(-0.01 * depth);
+	FragColor = vec4(
 		0.5 + 0.5 * cos(time + 0.1 * float(raysteps)),
 		0.5 + 0.5 * sin(time + 0.1 * float(raysteps)),
 		0.5 + 0.5 * cos(0.452 * time + 0.3 * float(raysteps)),
-		1.0
+		depth / 100.0
 	);
+	gl_FragDepth = depth / 100.0;
 }

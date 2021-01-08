@@ -6,6 +6,9 @@
 #include "rng.h"
 #include <chrono>
 #include "raycaster.h"
+#include "screen.h"
+#include "particles.h"
+#include "framebuffer.h"
 
 GLFWwindow* window;
 Player* player;
@@ -69,16 +72,27 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 int main() {
 	rng::srand(425);
     glfwInit();
-	window = glfwCreateWindow(1920, 1080, "application", glfwGetPrimaryMonitor(), NULL);
+	window = glfwCreateWindow(WIDTH, HEIGHT, "epic stuff!", NULL, NULL);
 	glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glewInit();
     glfwSetKeyCallback(window, keyCallback);
-	glDisable(GL_DEPTH_TEST);
 
+	mat4 Projection = perspective(
+		1.2f,
+		static_cast<float>(16) / 9,
+		0.1f,
+		100.0f
+	);
+	Framebuffer fb1(WIDTH, HEIGHT);
+	Framebuffer fb2(WIDTH, HEIGHT);
 	player = new Player();
 	Raycaster raycaster;
-	raycaster.setResolution(1920, 1080);
+	raycaster.setResolution(WIDTH, HEIGHT);
+	Screen screen(fb1, fb2);
+	raycaster.setProjection(Projection);
+
+
 	typedef std::chrono::high_resolution_clock Time;
 	typedef std::chrono::duration<float> fsec;
 	auto t0 = Time::now();
@@ -87,9 +101,16 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 		auto t1 = Time::now();
 		fsec t = t1 - t0;
-		raycaster.setTime(t.count());
+		
         player->move();
+		mat4 VP = Projection * inverse(player->getModel()); 
+		fb1.bind();
         raycaster.render(player->getModel());
+		fb1.unbind();
+		raycaster.setTime(t.count());
+
+		ParticleCluster::setViewProjection(VP);
+		screen.render();
         glfwSwapBuffers(window);
 		glfwPollEvents();
     }

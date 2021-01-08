@@ -1,7 +1,9 @@
 #include "raycaster.h"
 #include "loadshaders.h"
+#include <iostream>
 
 Raycaster::Raycaster() {
+	//construct vertex array with 6 vertices: 2 triangles covering the screen
     GLuint vertexBuffer;
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
@@ -37,10 +39,19 @@ void Raycaster::setTime(float t){
 	glUniform1f(glGetUniformLocation(program, "time"), t);
 }
 
+void Raycaster::setProjection(mat4 proj) {
+	mat4 invProj = inverse(proj);
+	GLuint locProj = glGetUniformLocation(program, "proj");
+	glUniformMatrix4fv(locProj, 1, GL_FALSE, &invProj[0][0]);
+}
+
+
 void Raycaster::render(glm::mat4 cam) {
+	//glDisable(GL_DEPTH_TEST);
 	glUseProgram(program);
     GLuint locModel = glGetUniformLocation(program, "cam");
 	glUniformMatrix4fv(locModel, 1, GL_FALSE, &cam[0][0]);
 	glBindVertexArray(vertexArray);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_DEPTH_TEST);
 }

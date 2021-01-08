@@ -10,13 +10,13 @@ void Player::move() {
 	vec3 dSpin(0.0f);
 	if (rot[0]) dSpin += rotAmount * forward;
 	if (rot[1]) dSpin -= rotAmount * forward;
-	if (rot[2]) dSpin += rotAmount * up;
-	if (rot[3]) dSpin -= rotAmount * up;
-	if (rot[4]) dSpin += rotAmount * right;
-	if (rot[5]) dSpin -= rotAmount * right;
+	if (rot[2]) dSpin -= rotAmount * up;
+	if (rot[3]) dSpin += rotAmount * up;
+	if (rot[4]) dSpin -= rotAmount * right;
+	if (rot[5]) dSpin += rotAmount * right;
 
-	if (mov[0]) vel += movAmount * forward;
-	if (mov[1]) vel -= movAmount * forward;
+	if (mov[0]) vel -= movAmount * forward;
+	if (mov[1]) vel += movAmount * forward;
 	if (mov[2]) vel -= movAmount * right;
 	if (mov[3]) vel += movAmount * right;
 	if (mov[4]) vel += movAmount * up;

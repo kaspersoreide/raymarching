@@ -1,5 +1,10 @@
+#pragma once
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include "constants.h"
+
+using namespace glm;
 
 class Raycaster {
 public:
@@ -7,6 +12,7 @@ public:
     void render(glm::mat4 cam);
     void setResolution(unsigned int x, unsigned int y);
     void setTime(float t);
-private:
+    void setProjection(mat4 proj);
     GLuint vertexArray, program;
+   
 };
