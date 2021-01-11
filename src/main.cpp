@@ -9,6 +9,7 @@
 #include "screen.h"
 #include "particles.h"
 #include "framebuffer.h"
+#include "cube.h"
 
 GLFWwindow* window;
 Player* player;
@@ -67,6 +68,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == GLFW_KEY_ESCAPE) {
 		closed = true;
 	}
+	if (key == GLFW_KEY_SPACE) {
+		closed = true;
+	}
 }
 
 int main() {
@@ -78,39 +82,31 @@ int main() {
     glewInit();
     glfwSetKeyCallback(window, keyCallback);
 
-	mat4 Projection = perspective(
-		1.2f,
-		static_cast<float>(16) / 9,
-		0.1f,
-		100.0f
-	);
-	Framebuffer fb1(WIDTH, HEIGHT);
-	Framebuffer fb2(WIDTH, HEIGHT);
+	mat4 Projection = perspective(1.2f, 16.0f / 9, 0.1f, 100.0f);
+	//Framebuffer fb1(WIDTH, HEIGHT);
+	//Framebuffer fb2(WIDTH, HEIGHT);
 	player = new Player();
 	Raycaster raycaster;
-	raycaster.setResolution(WIDTH, HEIGHT);
-	Screen screen(fb1, fb2);
+	//Screen screen(fb1, fb2);
 	raycaster.setProjection(Projection);
-
+	Cube cube;
 
 	typedef std::chrono::high_resolution_clock Time;
 	typedef std::chrono::duration<float> fsec;
 	auto t0 = Time::now();
+	glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window) && !closed) {
 		//main loop
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		mat4 VP = Projection * player->getView(); 
 		auto t1 = Time::now();
 		fsec t = t1 - t0;
-		
         player->move();
-		mat4 VP = Projection * inverse(player->getModel()); 
-		fb1.bind();
-        raycaster.render(player->getModel());
-		fb1.unbind();
+		//fb1.bind();
+        raycaster.render(player->getModel(), VP);
+		//fb1.unbind();
 		raycaster.setTime(t.count());
-
-		ParticleCluster::setViewProjection(VP);
-		screen.render();
+		//screen.render();
         glfwSwapBuffers(window);
 		glfwPollEvents();
     }

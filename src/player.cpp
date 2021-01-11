@@ -23,14 +23,24 @@ void Player::move() {
 	if (mov[5]) vel -= movAmount * up;
 	spin *= 0.94f;
 	vel *= 0.9f;
+	vel.y -= 0.01f;
+	if (pos.y <= 0.5f && vel.y < 0.0f) {
+		vel.y = 0.0f;
+		pos.y = 0.50000001f;
+	}
 	setSpin(spin + dSpin);
 	Object::move();
 }
 
 Player::Player() {
-	pos = vec3(0.0, 0.0, -3.0);
+	pos = vec3(0.0, 1.0, 0.0);
 }
 
 Player::~Player()
 {
+
+}
+
+void Player::jump() {
+	
 }

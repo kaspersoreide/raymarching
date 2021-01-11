@@ -1,4 +1,5 @@
 #include "particles.h"
+#include <iostream>
 
 GLuint ParticleCluster::renderProgram;
 GLuint ParticleCluster::transformProgram;
@@ -108,16 +109,18 @@ ParticleCluster::ParticleCluster(int n, vec3 origin, vec3 color, float radius) :
 	glGenBuffers(1, &TBO);
 	glBindBuffer(GL_ARRAY_BUFFER, TBO);
 	glBufferData(GL_ARRAY_BUFFER, n * nicolasCage, NULL, GL_DYNAMIC_DRAW);
+	std::cout << "particles spawned\n";
 }
 
 
 void ParticleCluster::doStuff() {
 	++t;
 	if (t > 600) {
+		std::cout << "particles die\n";
 		particles.erase(find(particles.begin(), particles.end(), this));
 		delete this;
 		return;
-	}
+	} 
 	setUniforms();
 	glUseProgram(transformProgram);
 	glBindVertexArray(VAOt);
@@ -132,6 +135,7 @@ void ParticleCluster::doStuff() {
 	glUseProgram(renderProgram);
 	glBindVertexArray(VAOr);
 	glDisable(GL_RASTERIZER_DISCARD);
+	glLineWidth(3.0f);
 	glDrawArrays(GL_LINES, 0, particleCount);
 
 	GLuint temp = TBO;

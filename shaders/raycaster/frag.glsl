@@ -9,6 +9,7 @@ uniform float ratio;
 //uniform vec4 spheres[32];
 uniform mat4 cam;
 uniform mat4 proj;
+uniform mat4 VP;
 uniform float time;
 
 float spacing = 8.0;
@@ -64,19 +65,26 @@ vec2 mandelBulb(vec3 pos) {
 	return vec2(0.5*log(r)*r / dr, steps);
 }
 
+float distGround(vec3 pos, vec3 cPos) {
+	vec2 dist = (pos - cPos).xz;
+	float height = pos.y + 0.01 * dot(dist, dist);
+	return height;
+}
+
 void main() {
 	//c goes from -1 to 1 in x and y directions
-	vec2 c = vec2(
-		screenPos.x * ratio,
-		screenPos.y
-	);
+	//vec2 c = vec2(
+	//	screenPos.x * ratio,
+	//	screenPos.y
+	//);
 
 	vec3 cPos = cam[3].xyz;
 
 	//this does the projection outwards. +z is forward
-	//vec3 dir = (cam * vec4(normalize(vec3(0.9 * c, 1.0)), 0.0)).xyz;
-	vec3 projDir = (proj * vec4(screenPos, -1.0, 1.0)).xyz;
+	//vec3 dir = (cam * vec4(normalize(vec3(0.9 * screenPos, 1.0)), 0.0)).xyz;
+	vec3 projDir = (proj * vec4(screenPos, 1.0, 1.0)).xyz;
 	vec3 dir = normalize(cam * vec4(projDir, 0.0)).xyz;
+	//vec3 dir = normalize((proj * vec4(screenPos, -1.0, 1.0)).xyz);
 
 	int raysteps = 0;
 	vec3 raypos = cPos;
@@ -84,21 +92,23 @@ void main() {
 	vec2 mandelinfo;
 	float gravConstant = 0.01;
 	while (dist > 0.0001 && raysteps < 50) {
-		dist = distSphere(raypos);
-		dir += gravConstant * vecToSphere(raypos) / (dist*dist);
+		dist = min(distGround(raypos, cPos), distSphere(raypos));
+		//dir += gravConstant * vecToSphere(raypos) / (dist*dist);
+		//dir = normalize(dir);
 		raypos += dist * dir;
 		raysteps += 1;
 	}
 	vec3 normal = vecToSphere(raypos);
 	vec3 lightdir = normalize(vec3(1.0, 1.0, 1.0));
 	float reflection = dot(normal, lightdir);
+	//vec4 projectedPos = VP * vec4(raypos, 1.0);
 	float depth = distance(raypos, cPos);
 	float shade = exp(-0.01 * depth);
-	FragColor = vec4(
+	FragColor = shade * vec4(
 		0.5 + 0.5 * cos(time + 0.1 * float(raysteps)),
 		0.5 + 0.5 * sin(time + 0.1 * float(raysteps)),
 		0.5 + 0.5 * cos(0.452 * time + 0.3 * float(raysteps)),
-		depth / 100.0
+		1.0
 	);
-	gl_FragDepth = depth / 100.0;
+	//gl_FragDepth = depth / projectedPos.w;
 }
