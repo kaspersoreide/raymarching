@@ -38,3 +38,33 @@ mat4 translateR(mat3 R, vec3 p) {
 	result[3][3] = 1.0f;
 	return result;
 }
+
+mat3 rotateX(float radians) {
+	float cos = std::cos(radians);
+	float sin = std::sin(radians);
+	return mat3(
+		vec3(1.0f, 0.0f, 0.0f),
+		vec3(0.0f, cos, sin),
+		vec3(0.0f, -sin, cos)
+	);
+}
+
+mat3 rotateY(float radians) {
+	float cos = std::cos(radians);
+	float sin = std::sin(radians);
+	return mat3(
+		vec3(cos, 0.0f, sin),
+		vec3(0.0f, 1.0f, 0.0f),
+		vec3(-sin, 0.0f, cos)
+	);
+}
+
+mat3 rotateZ(float radians) {
+	float cos = std::cos(radians);
+	float sin = std::sin(radians);
+	return mat3(
+		vec3(cos, -sin, 0.0f),
+		vec3(sin, cos, 0.0f),
+		vec3(0.0f, 0.0f, 1.0f)
+	);
+}

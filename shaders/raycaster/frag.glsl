@@ -35,13 +35,29 @@ float distSphere(vec3 p) {
 	return length(vecToSphere(p)) - sphere.w;
 }
 
+float distFunky(vec3 p) {
+	//vec3 d = vecToSphere(p);
+	float k = 3.0 * sin(time + p.z); // or some other amount
+	p = mod(p + 4.0, 8.0) - 4.0;
+    float c = cos(k*p.y);
+    float s = sin(k*p.y);
+    mat2  m = mat2(c,-s,s,c);
+    p = vec3(m*p.xz,p.y);
+	//p = abs(p);
+  	//return (p.x+p.y+p.z-2.0)*0.57735027;
+	float x = max(0.0, abs(p.x) - 1.0);
+	float y = max(0.0, abs(p.y) - 1.0);
+	float z = max(0.0, abs(p.z) - 1.0);
+	return sqrt(x*x + y*y + z*z);
+}
+
 vec2 mandelBulb(vec3 pos) {
-	vec3 z = pos;
+	vec3 z = vec3(pos.x, pos.y-2.0, pos.z);
 	float dr = 1.0;
 	float r = 0.0;
 	float Power = 8.0;
 	int steps = 0;
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 10; i++) {
 		r = length(z);
 		if (r > 4.0) break;
 
@@ -63,6 +79,11 @@ vec2 mandelBulb(vec3 pos) {
 	return vec2(0.5*log(r)*r / dr, steps);
 }
 
+float distGround(vec3 pos, vec3 cPos) {
+	vec2 diff = pos.xz - cPos.xz;
+	return pos.y;
+}
+
 void main() {
 	//c goes from -1 to 1 in x and y directions
 	vec2 c = vec2(
@@ -79,16 +100,22 @@ void main() {
 	vec3 raypos = cPos;
 	float dist = 1.0;
 	vec2 mandelinfo;
-	float gravConstant = -0.1;
+	float gravConstant = -0.001;
 	while (dist > 0.0001 && raysteps < 50) {
-		dist = distToCube(raypos);
-		dir += gravConstant * vecToSphere(raypos) / (dist*dist);
-		raypos += 0.8 * dist * dir;
+		if (dir.y < 0.0 && raypos.y < 0.0) {
+			dir.y *= -1;
+			raysteps = 30;
+			raypos.y *= -1.0;
+		} 
+		dist = distFunky(raypos);
+		//dir += gravConstant * vecToSphere(raypos) / (dist*dist);
+		//dir = normalize(dir);
+		raypos += dist * dir;
 		raysteps += 1;
 	}
 	vec3 normal = vecToSphere(raypos);
-	vec3 lightdir = normalize(vec3(1.0, 1.0, 1.0));
-	float reflection = dot(normal, lightdir);
+	//vec3 lightdir = normalize(vec3(1.0, 1.0, 1.0));
+	//float reflection = clamp(dot(normal, lightdir), 0.2, 1.0);
 	float shade = exp(-0.01 * distance(raypos, cPos));
 	FragColor = shade * vec4(
 		0.5 + 0.5 * cos(time + 0.1 * float(raysteps)),

@@ -10,6 +10,7 @@
 GLFWwindow* window;
 Player* player;
 bool closed = false;
+vec2 mouse(0.0f);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_E) {
@@ -64,21 +65,35 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == GLFW_KEY_ESCAPE) {
 		closed = true;
 	}
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		player->jump();
+	}
+}
+
+void cursorCallback(GLFWwindow* window, double xpos, double ypos) {
+	//vec2 diff(xpos - mouse.x, ypos - mouse.y);
+	//player->rotate(diff);
+	mouse = vec2(xpos, ypos);
+	player->rotate(mouse);
+	//std::cout << "mouse x: " << xpos << ", y: " << ypos << "\n";
 }
 
 int main() {
 	rng::srand(425);
     glfwInit();
-	window = glfwCreateWindow(1920, 1080, "application", glfwGetPrimaryMonitor(), NULL);
+	window = glfwCreateWindow(1280, 720, "application", NULL, NULL);
 	glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glewInit();
     glfwSetKeyCallback(window, keyCallback);
 	glDisable(GL_DEPTH_TEST);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+	glfwSetCursorPosCallback(window, cursorCallback);
 
 	player = new Player();
 	Raycaster raycaster;
-	raycaster.setResolution(1920, 1080);
+	raycaster.setResolution(1280, 720);
 	typedef std::chrono::high_resolution_clock Time;
 	typedef std::chrono::duration<float> fsec;
 	auto t0 = Time::now();
